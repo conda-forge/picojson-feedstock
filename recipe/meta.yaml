@@ -8,19 +8,34 @@ package:
 source:
   url: https://github.com/kazuho/{{ name }}/archive/v{{ version }}.tar.gz
   sha256: 056805ca2691798f5545935a14bb477f2e1d827c9fb862e6e449dbea22801c7d
+  patches:
+    - patches/0001-Add-CMake-config-file-package-to-install.patch
 
 build:
+  ignore_run_exports:
+    # package is header-only
+    - {{ stdlib('c') }}
+    - {{ compiler('cxx') }}
   number: 0
 
 requirements:
   build:
-    - make
-    - m2w64-make  # [win]
+    - {{ stdlib('c') }}
+    - {{ compiler('cxx') }}
+    - cmake
+    - make  # [unix]
+    - ninja  # [win]
 
 test:
   commands:
     - test -f ${PREFIX}/include/picojson/picojson.h  # [unix]
+    - test -f ${PREFIX}/lib/cmake/picojson/picojson-targets.cmake  # [unix]
+    - test -f ${PREFIX}/lib/cmake/picojson/picojson-config-version.cmake  # [unix]
+    - test -f ${PREFIX}/lib/cmake/picojson/picojson-config.cmake  # [unix]
     - if not exist %LIBRARY_INC%\picojson\picojson.h exit 1  # [win]
+    - if not exist %LIBRARY_LIB%\cmake\picojson\picojson-targets.cmake exit 1  # [win]
+    - if not exist %LIBRARY_LIB%\cmake\picojson\picojson-config-version.cmake exit 1  # [win]
+    - if not exist %LIBRARY_LIB%\cmake\picojson\picojson-config.cmake exit 1  # [win]
 
 about:
   home: https://github.com/kazuho/picojson
@@ -39,3 +54,4 @@ about:
 extra:
   recipe-maintainers:
     - duncanmmacleod
+    - eaaltonen
