@@ -16,7 +16,7 @@ build:
     # package is header-only
     - {{ stdlib('c') }}
     - {{ compiler('cxx') }}
-  number: 0
+  number: 1
 
 requirements:
   build:
