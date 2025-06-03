@@ -1,0 +1,84 @@
+From 3a63c0f62efa59de106ac8d83fb663504ee822e6 Mon Sep 17 00:00:00 2001
+From: Eero Aaltonen <eero.aaltonen@vaisala.com>
+Date: Tue, 18 Mar 2025 12:14:51 +0200
+Subject: [PATCH] Add CMake config-file package to install
+
+A CMake config-file package can be used also on Windows systems and by
+libraries that want to support multiple platforms.
+---
+ CMakeLists.txt           | 50 ++++++++++++++++++++++++++++++++++++++++
+ picojson-config.cmake.in |  5 ++++
+ 2 files changed, 55 insertions(+)
+ create mode 100644 CMakeLists.txt
+ create mode 100644 picojson-config.cmake.in
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100644
+index 0000000..5e03d7b
+--- /dev/null
++++ CMakeLists.txt
+@@ -0,0 +1,50 @@
++cmake_minimum_required(VERSION 3.16)
++project(picojson
++    VERSION 1.3.0
++    LANGUAGES CXX
++)
++
++include(GNUInstallDirs)
++
++set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}"
++    CACHE PATH "Location of header files"
++)
++
++add_library(picojson INTERFACE)
++add_library(picojson::picojson ALIAS picojson)
++target_include_directories(picojson INTERFACE
++    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
++    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
++)
++
++install(FILES picojson.h
++    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/picojson/"
++)
++
++install(TARGETS picojson EXPORT picojson-targets
++    INCLUDES DESTINATION include
++)
++
++set(config_package_location ${CMAKE_INSTALL_LIBDIR}/cmake/picojson)
++install(EXPORT picojson-targets
++    FILE picojson-targets.cmake
++    NAMESPACE picojson::
++    DESTINATION ${config_package_location}
++)
++
++include(CMakePackageConfigHelpers)
++configure_package_config_file(picojson-config.cmake.in
++    ${CMAKE_CURRENT_BINARY_DIR}/picojson-config.cmake
++    INSTALL_DESTINATION ${config_package_location}
++    PATH_VARS INCLUDE_INSTALL_DIR
++)
++write_basic_package_version_file(
++    "${CMAKE_CURRENT_BINARY_DIR}/picojson-config-version.cmake"
++    VERSION ${PROJECT_VERSION}
++    COMPATIBILITY SameMajorVersion
++    ARCH_INDEPENDENT
++)
++install(FILES ${CMAKE_CURRENT_BINARY_DIR}/picojson-config.cmake
++              ${CMAKE_CURRENT_BINARY_DIR}/picojson-config-version.cmake
++    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/picojson
++)
+diff --git a/picojson-config.cmake.in b/picojson-config.cmake.in
+new file mode 100644
+index 0000000..119ead0
+--- /dev/null
++++ picojson-config.cmake.in
+@@ -0,0 +1,5 @@
++@PACKAGE_INIT@
++
++include("${CMAKE_CURRENT_LIST_DIR}/picojson-targets.cmake")
++
++check_required_components(picojson)
+-- 
+2.34.1
+
